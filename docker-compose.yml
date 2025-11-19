@@ -1,0 +1,32 @@
+version: "3.9"
+services:
+  php:
+    image: yiisoftware/yii2-php:8.2-apache
+    container_name: yii2-php
+    ports: ["8080:80"]
+    volumes: ["./:/app"]
+    environment:
+      - PHP_ENABLE_XDEBUG=0
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_NAME=library
+      - DB_USER=yii
+      - DB_PASSWORD=password
+    depends_on: ["db"]
+    working_dir: /app
+
+  db:
+    image: mysql:8.0
+    container_name: yii2-db
+    environment:
+      MYSQL_DATABASE: library
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: yii
+      MYSQL_PASSWORD: password
+    ports: ["3307:3306"]
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command: ["--default-authentication-plugin=mysql_native_password"]
+
+volumes:
+  mysql_data:

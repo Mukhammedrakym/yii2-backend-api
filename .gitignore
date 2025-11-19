@@ -1,0 +1,16 @@
+/vendor/
+/runtime/
+/web/assets/
+/node_modules/
+/tests/_output/
+/composer.phar
+.DS_Store
+/.env
+/.env.*
+/config/*-local.php
+.idea/
+/.vscode/
+/nbproject/
+/bower_components/
+/sqlite.db
+docker/mysql/data
