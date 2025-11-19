@@ -59,14 +59,17 @@ $config = [
             ],
         ],
         'db' => $db,
-        /*
+        
         'urlManager' => [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
             'rules' => [
+                'POST auth/login'       => 'auth/login',
+                'POST users'            => 'users/create',
+                'GET users/<id:\d+>'    => 'users/view',
             ],
         ],
-        */
+        
     ],
     'params' => $params,
 ];
