@@ -1,6 +1,14 @@
 <?php
 
-$params = require __DIR__ . '/params.php';
+$params = [];
+
+$params['jwt'] = [
+    'secret'   => getenv('JWT_SECRET')   ?: 'very-secret-key-change-me',
+    'issuer'   => getenv('JWT_ISSUER')   ?: 'library-api',
+    'audience' => getenv('JWT_AUDIENCE') ?: 'library-clients',
+    'ttl'      => (int)(getenv('JWT_TTL') ?: 86400),
+];
+
 $db = require __DIR__ . '/db.php';
 
 $config = [
@@ -15,13 +23,22 @@ $config = [
         'request' => [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
             'cookieValidationKey' => 'JHVB075zyGeEnEqQMYiGzy5JZqN1kLYA',
+            'parsers' => [
+                'application/json' => 'yii\web\JsonParser',
+            ],
         ],
         'cache' => [
             'class' => 'yii\caching\FileCache',
         ],
         'user' => [
             'identityClass' => 'app\models\User',
-            'enableAutoLogin' => true,
+            'enableAutoLogin' => false,
+            'enableSession' => false,
+            'loginUrl' => null,
+        ],
+        'response' => [
+            'format' => yii\web\Response::FORMAT_JSON,
+            'charset' => 'UTF-8',
         ],
         'errorHandler' => [
             'errorAction' => 'site/error',
