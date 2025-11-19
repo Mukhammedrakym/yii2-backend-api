@@ -20,6 +20,10 @@ $config = [
         '@npm'   => '@vendor/npm-asset',
     ],
     'components' => [
+        'jwtService' => [
+            'class' => app\services\JwtService::class,
+            'config' => $params['jwt'],
+        ],
         'request' => [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
             'cookieValidationKey' => 'JHVB075zyGeEnEqQMYiGzy5JZqN1kLYA',
