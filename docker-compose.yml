@@ -1,6 +1,6 @@
 services:
   php:
-    image: yiisoftware/yii2-php:8.2-apache
+    image: yiisoftware/yii2-php:8.3-apache
     container_name: yii2-php
     ports: ["8080:80"]
     volumes: ["./:/app"]
