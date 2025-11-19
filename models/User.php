@@ -42,6 +42,11 @@ class User extends ActiveRecord implements \yii\web\IdentityInterface
         return null;
     }
 
+    public static function findByUsername($username)
+    {
+        return static::findOne(['username' => $username]);
+    }
+
     public function getId(): int|string|null
     {
         return $this->id;

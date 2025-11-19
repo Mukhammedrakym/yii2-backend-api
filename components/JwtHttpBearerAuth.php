@@ -4,6 +4,7 @@ namespace app\components;
 
 use yii\filters\auth\HttpBearerAuth;
 use app\services\JwtService;
+use yii\web\IdentityInterface;
 
 
 class JwtHttpBearerAuth extends HttpBearerAuth

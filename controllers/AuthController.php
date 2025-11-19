@@ -5,12 +5,10 @@ namespace app\controllers;
 use yii\rest\Controller;
 use yii\filters\VerbFilter;
 use yii\web\BadRequestHttpException;
-use app\models\forms\LoginForm;
+use app\models\LoginForm;
 use app\services\JwtService;
 
-/**
- * POST /auth/login — логин по username/password, выдаёт JWT.
- */
+
 class AuthController extends Controller
 {
     public function behaviors(): array
