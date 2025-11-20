@@ -1,57 +1,39 @@
 # Yii2 Library REST API
 
-````
+REST API для управления библиотекой книг: регистрация пользователей, JWT авторизация и CRUD книг. Проект собран на Yii2 Basic, докеризован и покрыт юнит-тестами.
 
-2. **Стек / возможности**
-- Yii2 Basic
+## Стек
+
+- PHP 8.3, Yii2 Basic
+- MySQL 8.0
 - JWT (firebase/php-jwt)
-- REST JSON ответы
-- Docker (php-fpm + MySQL)
-- Codeception unit-тесты
+- Docker Compose
+- Codeception (unit tests)
 
-3. **Требования**
-- Docker + Docker Compose
-- PHP 8.2 (если запуск локально)
-- Composer
+## Быстрый старт (Docker)
 
-4. **Запуск через Docker**
 ```bash
 git clone <repo>
 cd yii2-backend-api
-
-# Создать .env (если используется)
 cp .env.example .env
 
 docker compose up -d
 docker compose exec php composer install
 docker compose exec php php yii migrate
 docker compose exec php vendor/bin/codecept run unit
-````
+```
 
-Указать, что API доступен на `http://localhost:8080`.
+API: `http://localhost:8080`
 
-5. **Локальный запуск (если нужен)**
+## Эндпоинты
 
-   ```bash
-   composer install
-   php yii migrate
-   php yii serve
-   ```
-
-6. **Конфигурация окружения**
-
-   - Перечислить переменные `.env` (DB_HOST, DB_NAME, JWT_SECRET, т.д.)
-   - Как работать с тестовой БД (`library_test`)
-
-7. **API эндпоинты**
-   Табличка или список:
-   ```
-   POST /users – регистрация
-   POST /auth/login – получить JWT
-   GET /users/{id} – профиль (Bearer JWT)
-   GET /books – список книг
-   POST /books – создать книгу (Bearer JWT)
-   GET /books/{id}
-   PUT /books/{id} – обновление (Bearer JWT, только владелец)
-   DELETE /books/{id} – удаление (Bearer JWT, только владелец)
-   ```
+| Method | URL         | Защита             | Описание             |
+| ------ | ----------- | ------------------ | -------------------- |
+| POST   | /users      | -                  | Регистрация          |
+| POST   | /auth/login | -                  | JWT логин            |
+| GET    | /users/{id} | Bearer JWT         | Профиль пользователя |
+| GET    | /books      | -                  | Список книг          |
+| POST   | /books      | Bearer JWT         | Создать книгу        |
+| GET    | /books/{id} | -                  | Получить книгу       |
+| PUT    | /books/{id} | Bearer JWT (owner) | Обновить книгу       |
+| DELETE | /books/{id} | Bearer JWT (owner) | Удалить книгу        |
