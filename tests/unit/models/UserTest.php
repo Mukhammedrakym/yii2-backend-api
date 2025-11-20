@@ -3,42 +3,71 @@
 namespace tests\unit\models;
 
 use app\models\User;
+use Codeception\Test\Unit;
+use Yii;
 
-class UserTest extends \Codeception\Test\Unit
+class UserTest extends Unit
 {
-    public function testFindUserById()
-    {
-        verify($user = User::findIdentity(100))->notEmpty();
-        verify($user->username)->equals('admin');
+    private int $userId;
 
-        verify(User::findIdentity(999))->empty();
+    protected function _before()
+    {
+        Yii::$app->db->createCommand()->delete('book')->execute();
+        Yii::$app->db->createCommand()->delete('user')->execute();
+
+        $user = new User();
+        $user->username = 'testuser';
+        $user->email = 'test@example.com';
+        $user->setPassword('password123');
+        $user->auth_key = Yii::$app->security->generateRandomString();
+        $user->save();
+
+        $this->userId = $user->id;
     }
 
-    public function testFindUserByAccessToken()
+    public function testFindUserById()
     {
-        verify($user = User::findIdentityByAccessToken('100-token'))->notEmpty();
-        verify($user->username)->equals('admin');
-
-        verify(User::findIdentityByAccessToken('non-existing'))->empty();        
+        $user = User::findIdentity($this->userId);
+        verify($user)->notEmpty();
+        verify($user->username)->equals('testuser');
     }
 
     public function testFindUserByUsername()
     {
-        verify($user = User::findByUsername('admin'))->notEmpty();
-        verify(User::findByUsername('not-admin'))->empty();
+        $user = User::findByUsername('testuser');
+        verify($user)->notEmpty();
+        verify($user->email)->equals('test@example.com');
+
+        verify(User::findByUsername('nonexistent'))->empty();
     }
 
-    /**
-     * @depends testFindUserByUsername
-     */
-    public function testValidateUser()
+    public function testSetPassword()
     {
-        $user = User::findByUsername('admin');
-        verify($user->validateAuthKey('test100key'))->notEmpty();
-        verify($user->validateAuthKey('test102key'))->empty();
+        $user = new User();
+        $user->setPassword('testpassword');
 
-        verify($user->validatePassword('admin'))->notEmpty();
-        verify($user->validatePassword('123456'))->empty();        
+        verify($user->password)->notEquals('testpassword');
+        verify($user->password)->notEmpty();
     }
 
+    public function testValidatePassword()
+    {
+        $user = new User();
+        $user->setPassword('testpassword');
+
+        verify($user->validatePassword('testpassword'))->true();
+        verify($user->validatePassword('wrongpassword'))->false();
+    }
+
+    public function testUsernameUnique()
+    {
+        $user = new User();
+        $user->username = 'testuser';
+        $user->email = 'another@example.com';
+        $user->setPassword('password123');
+        $user->auth_key = Yii::$app->security->generateRandomString();
+
+        verify($user->validate())->false();
+        verify(array_key_exists('username', $user->errors))->true();
+    }
 }

@@ -4,51 +4,50 @@ namespace app\services;
 
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
+use Firebase\JWT\ExpiredException;
+use Firebase\JWT\SignatureInvalidException;
 use Yii;
 use app\models\User;
 
 
 class JwtService
 {
-    /**
-     * @param User $user
-     * @return string
-     */
-    public static function issueToken(User $user): string
+    private array $config;
+
+    public function __construct(array $config)
     {
-        $config = Yii::$app->params['jwt'];
-
-        $issuedAt   = time();
-        $expiration = $issuedAt + $config['ttl'];
-
-        $payload = [
-            'iss' => $config['issuer'],     // кто выпустил токен
-            'aud' => $config['audience'],   // кому предназначен
-            'iat' => $issuedAt,             // время выпуска
-            'nbf' => $issuedAt,             // не использовать раньше
-            'exp' => $expiration,           // срок действия
-            'uid' => $user->id,             // ID пользователя
-        ];
-
-        return JWT::encode($payload, $config['secret'], 'HS256');
+        $this->config = $config;
     }
 
-    /**
-     * Проверяет и декодирует токен.
-     * Возвращает объект User, если токен валиден, иначе null.
-     *
-     * @param string $token
-     * @return User|null
-     */
-    public static function parseToken(string $token): ?User
+    public function issueToken(User $user): string
+    {
+        $now = time();
+
+        $payload = [
+            'iss' => $this->config['issuer'],
+            'aud' => $this->config['audience'],
+            'iat' => $now,
+            'nbf' => $now,
+            'exp' => $now + $this->config['ttl'],
+            'uid' => $user->id,
+        ];
+
+        return JWT::encode($payload, $this->config['secret'], 'HS256');
+    }
+
+    public function parseToken(string $token): ?User
     {
         try {
-            $config = Yii::$app->params['jwt'];
-            $decoded = JWT::decode($token, new Key($config['secret'], 'HS256'));
+            $decoded = JWT::decode($token, new Key($this->config['secret'], 'HS256'));
             return User::findOne((int)$decoded->uid);
-        } catch (\Throwable $exception) {
-            Yii::warning('JWT parse error: ' . $exception->getMessage(), 'jwt');
-            return null;
+        } catch (ExpiredException $e) {
+            Yii::warning('JWT expired: ' . $e->getMessage(), 'jwt');
+        } catch (SignatureInvalidException $e) {
+            Yii::warning('JWT signature invalid: ' . $e->getMessage(), 'jwt');
+        } catch (\Throwable $e) {
+            Yii::warning('JWT parse error: ' . $e->getMessage(), 'jwt');
         }
+
+        return null;
     }
 }

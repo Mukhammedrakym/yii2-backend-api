@@ -8,7 +8,8 @@ use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
 use app\models\User;
 use app\components\JwtHttpBearerAuth;
-
+use app\helpers\ApiResponse;
+use Yii;
 
 class UsersController extends Controller
 {
@@ -20,13 +21,13 @@ class UsersController extends Controller
             'class' => VerbFilter::class,
             'actions' => [
                 'create' => ['POST'],
-                'view'   => ['GET'],
+                'view' => ['GET'],
             ],
         ];
 
         $behaviors['authenticator'] = [
             'class' => JwtHttpBearerAuth::class,
-            'only'  => ['view'],
+            'only' => ['view'],
         ];
 
         return $behaviors;
@@ -34,41 +35,41 @@ class UsersController extends Controller
 
     public function actionCreate(): array
     {
-        $requestData = \Yii::$app->request->getBodyParams();
-
         $user = new User();
-        $user->load($requestData, '');
+        $user->scenario = 'register';
+        $user->load(Yii::$app->request->getBodyParams(), '');
 
+        $requestData = Yii::$app->request->getBodyParams();
         if (empty($requestData['password'])) {
-            throw new BadRequestHttpException('Password is required.');
+            return ApiResponse::error(['password' => ['Password is required.']], 422);
         }
 
         $user->setPassword($requestData['password']);
-        $user->auth_key = \Yii::$app->security->generateRandomString();
+        $user->auth_key = Yii::$app->security->generateRandomString();
 
         if (!$user->save()) {
-            throw new BadRequestHttpException(json_encode($user->getErrors(), JSON_UNESCAPED_UNICODE));
+            return ApiResponse::error($user->getErrors(), 422);
         }
 
-        return [
-            'id'       => $user->id,
+        return ApiResponse::success([
+            'id' => $user->id,
             'username' => $user->username,
-            'email'    => $user->email,
-        ];
+            'email' => $user->email,
+        ], 201);
     }
 
     public function actionView(int $id): array
     {
-        $currentUser = \Yii::$app->user->identity;
+        $currentUser = Yii::$app->user->identity;
 
         if ($currentUser === null || (int)$currentUser->id !== $id) {
             throw new ForbiddenHttpException('You can view only your own profile.');
         }
 
-        return [
-            'id'       => $currentUser->id,
+        return ApiResponse::success([
+            'id' => $currentUser->id,
             'username' => $currentUser->username,
-            'email'    => $currentUser->email,
-        ];
+            'email' => $currentUser->email,
+        ]);
     }
 }

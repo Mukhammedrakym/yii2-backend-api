@@ -1,6 +1,12 @@
 <?php
+
 $db = require __DIR__ . '/db.php';
-// test database! Important not to run tests on production or development databases
-$db['dsn'] = 'mysql:host=localhost;dbname=yii2basic_test';
+
+$db['dsn'] = sprintf(
+    'mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4',
+    getenv('DB_HOST') ?: 'db',
+    getenv('DB_PORT') ?: '3306',
+    'library_test'
+);
 
 return $db;

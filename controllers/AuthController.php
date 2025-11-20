@@ -5,9 +5,11 @@ namespace app\controllers;
 use yii\rest\Controller;
 use yii\filters\VerbFilter;
 use yii\web\BadRequestHttpException;
+use yii\web\UnauthorizedHttpException;
 use app\models\LoginForm;
 use app\services\JwtService;
-
+use app\helpers\ApiResponse;
+use Yii;
 
 class AuthController extends Controller
 {
@@ -28,19 +30,21 @@ class AuthController extends Controller
     public function actionLogin(): array
     {
         $loginForm = new LoginForm();
-        $loginForm->load(\Yii::$app->request->getBodyParams(), '');
+        $loginForm->load(Yii::$app->request->getBodyParams(), '');
 
         if (!$loginForm->validate()) {
-            throw new BadRequestHttpException(json_encode($loginForm->getErrors(), JSON_UNESCAPED_UNICODE));
+            return ApiResponse::error($loginForm->getErrors(), 422, 'Validation failed');
         }
 
         $user = $loginForm->getUser();
         if ($user === null) {
-            throw new BadRequestHttpException('Invalid credentials');
+            throw new UnauthorizedHttpException('Invalid credentials');
         }
 
-        $token = JwtService::issueToken($user);
+        /** @var JwtService $jwtService */
+        $jwtService = Yii::$app->jwtService;
+        $token = $jwtService->issueToken($user);
 
-        return ['token' => $token];
+        return ApiResponse::success(['token' => $token], 200);
     }
 }

@@ -5,7 +5,7 @@ namespace app\components;
 use yii\filters\auth\HttpBearerAuth;
 use app\services\JwtService;
 use yii\web\IdentityInterface;
-
+use Yii;
 
 class JwtHttpBearerAuth extends HttpBearerAuth
 {
@@ -21,7 +21,10 @@ class JwtHttpBearerAuth extends HttpBearerAuth
         }
 
         $token = $matches[1];
-        $identity = JwtService::parseToken($token);
+        
+        /** @var JwtService $jwtService */
+        $jwtService = Yii::$app->jwtService;
+        $identity = $jwtService->parseToken($token);
 
         if ($identity !== null) {
             $user->switchIdentity($identity);

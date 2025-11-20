@@ -3,49 +3,68 @@
 namespace tests\unit\models;
 
 use app\models\LoginForm;
+use app\models\User;
+use Codeception\Test\Unit;
+use Yii;
 
-class LoginFormTest extends \Codeception\Test\Unit
+class LoginFormTest extends Unit
 {
-    private $model;
-
-    protected function _after()
+    protected function _before()
     {
-        \Yii::$app->user->logout();
+        Yii::$app->db->createCommand()->delete('book')->execute();
+        Yii::$app->db->createCommand()->delete('user')->execute();
+
+
+        $user = new User();
+        $user->username = 'testuser';
+        $user->email = 'test@example.com';
+        $user->setPassword('password123');
+        $user->auth_key = Yii::$app->security->generateRandomString();
+        $user->save();
     }
 
-    public function testLoginNoUser()
+    public function testLoginWithCorrectCredentials()
     {
-        $this->model = new LoginForm([
-            'username' => 'not_existing_username',
-            'password' => 'not_existing_password',
-        ]);
+        $form = new LoginForm();
+        $form->username = 'testuser';
+        $form->password = 'password123';
 
-        verify($this->model->login())->false();
-        verify(\Yii::$app->user->isGuest)->true();
+        verify($form->validate())->true();
+        $user = $form->getUser();
+        verify($user)->notEmpty();
+        verify($user)->instanceOf(User::class);        
+        verify($user->username)->equals('testuser');
     }
 
     public function testLoginWrongPassword()
     {
-        $this->model = new LoginForm([
-            'username' => 'demo',
-            'password' => 'wrong_password',
-        ]);
+        $form = new LoginForm();
+        $form->username = 'testuser';
+        $form->password = 'wrongpassword';
 
-        verify($this->model->login())->false();
-        verify(\Yii::$app->user->isGuest)->true();
-        verify($this->model->errors)->arrayHasKey('password');
+        verify($form->validate())->true();
+        verify($form->getUser())->empty();
     }
 
-    public function testLoginCorrect()
+    public function testLoginWithNonExistentUser()
     {
-        $this->model = new LoginForm([
-            'username' => 'demo',
-            'password' => 'demo',
-        ]);
+        $form = new LoginForm();
+        $form->username = 'nonexistent';
+        $form->password = 'password123';
 
-        verify($this->model->login())->true();
-        verify(\Yii::$app->user->isGuest)->false();
-        verify($this->model->errors)->arrayHasNotKey('password');
+        verify($form->validate())->true();
+        verify($form->getUser())->empty();
     }
 
+    public function testLoginFormValidation()
+    {
+        $form = new LoginForm();
+        verify($form->validate())->false();
+
+        $form->username = 'ab';
+        $form->password = '';
+        verify($form->validate())->false();
+        verify(array_key_exists('username', $form->errors))->true();
+        verify(array_key_exists('password', $form->errors))->true();
+    }
 }

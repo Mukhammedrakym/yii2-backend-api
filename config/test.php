@@ -14,6 +14,15 @@ return [
     ],
     'language' => 'en-US',
     'components' => [
+        'jwtService' => [
+            'class' => app\services\JwtService::class,
+            'config' => [
+                'secret' => 'test-secret-key',
+                'issuer' => 'test-library-api',
+                'audience' => 'test-library-clients',
+                'ttl' => 3600,
+            ],
+        ],
         'db' => $db,
         'mailer' => [
             'class' => \yii\symfonymailer\Mailer::class,
@@ -26,14 +35,32 @@ return [
             'basePath' => __DIR__ . '/../web/assets',
         ],
         'urlManager' => [
-            'showScriptName' => true,
+            'showScriptName' => false,
+            'enablePrettyUrl' => true,
+            'rules' => [
+                'POST auth/login'       => 'auth/login',
+                'POST users'            => 'users/create',
+                'GET users/<id:\d+>'    => 'users/view',
+
+                // Books
+                'GET books'              => 'books/index',
+                'POST books'             => 'books/create',
+                'GET books/<id:\d+>'    => 'books/view',
+                'PUT books/<id:\d+>'    => 'books/update',
+                'DELETE books/<id:\d+>' => 'books/delete',
+            ],
         ],
         'user' => [
             'identityClass' => 'app\models\User',
+            'enableAutoLogin' => false,
+            'enableSession' => false,
         ],
         'request' => [
             'cookieValidationKey' => 'test',
             'enableCsrfValidation' => false,
+            'parsers' => [
+                'application/json' => 'yii\web\JsonParser',
+            ],
             // but if you absolutely need it set cookie domain to localhost
             /*
             'csrfCookie' => [

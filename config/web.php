@@ -71,6 +71,13 @@ $config = [
                 'POST auth/login'       => 'auth/login',
                 'POST users'            => 'users/create',
                 'GET users/<id:\d+>'    => 'users/view',
+
+                // Books
+                'GET books'              => 'books/index',
+                'POST books'             => 'books/create',
+                'GET books/<id:\d+>'    => 'books/view',
+                'PUT books/<id:\d+>'    => 'books/update',
+                'DELETE books/<id:\d+>' => 'books/delete',
             ],
         ],
         
